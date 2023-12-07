@@ -1,11 +1,14 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
+using DurableFunctionPoC.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace DurableFunctionPoC
 {
@@ -18,10 +21,12 @@ namespace DurableFunctionPoC
             [DurableClient] IDurableOrchestrationClient starter,
             ILogger log)
         {
-            var runbook = req.GetQueryParameterDictionary()["runbook"];
+            var body = await new StreamReader(req.Body).ReadToEndAsync();
+            var runbook = JsonConvert.DeserializeObject<RunbookRequest>(body);
+
             if (runbook == null)
             {
-                return new BadRequestObjectResult("Please pass the runbook name at query string.");
+                return new BadRequestObjectResult("Please pass the runbook name at body.");
             }
 
             // Function input comes from the request content.

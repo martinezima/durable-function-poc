@@ -1,3 +1,4 @@
+using DurableFunctionPoC.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Host;
@@ -11,55 +12,69 @@ namespace DurableFunctionPoC
 
     public static class ActivityFunctions
     {
-        [FunctionName(nameof(FirstRunbookToProcess))]
-        public static async Task<string> FirstRunbookToProcess([ActivityTrigger] string runbook, ILogger log)
+        [FunctionName(nameof(IntactRunbookToProcess))]
+        public static async Task<OutputResult<string>> IntactRunbookToProcess([ActivityTrigger] RunbookRequest runbook, ILogger log)
         {
-            log.LogInformation($"Running first runbook process {runbook}.");
+            log.LogInformation($"Running Intact runbook process {runbook.JobId} = {runbook.JobName}.");
+            log.LogInformation($"Starting to do it some job {runbook.DoSomeJob}. for Intact.");
             // simulate doing the activity
             await Task.Delay(5000);
-            return $"The runbook was processed {runbook} to first external system.";
+            return new OutputResult<string>
+            {
+                HasErrors = false,
+                Message = $"The runbook Job {runbook.JobName} was completed and processed to Intact system.",
+                Data = "Intact additional interesting data."
+            };
         }
 
-        [FunctionName(nameof(SecondRunbookToProcess))]
-        public static async Task<object> SecondRunbookToProcess([ActivityTrigger] string runbook, ILogger log)
+        [FunctionName(nameof(SalesforceRunbookToProcess))]
+        public static async Task<OutputResult<string>> SalesforceRunbookToProcess([ActivityTrigger] RunbookRequest runbook, ILogger log)
         {
             try
             {
-                log.LogInformation($"Running second runbook process {runbook}.");
-                if (runbook.Contains("Bad"))
+                log.LogInformation($"Running Salesforce runbook process {runbook.JobId} = {runbook.JobName}.");
+                if (runbook.DoSomeJob.Contains("Bad"))
                 {
-                    throw new InvalidOperationException("Failed to running second runbook process.");
+                    throw new InvalidOperationException($"Failed to running SalesForce process. Job: {runbook.JobName}");
                 }
 
+                log.LogInformation($"Starting to do it some job {runbook.DoSomeJob}. for Salesforce.");
                 // simulate doing the activity
                 await Task.Delay(5000);
-                return new
+                return new OutputResult<string>
                 {
-                    Success = true,
-                    Output = $"The runbook was processed {runbook} to second external system."
+                    HasErrors = false,
+                    Message = $"The runbook Job {runbook.JobName} was completed and processed to Salesforce system.",
+                    Data = "Salesforce additional interesting data."
                 };
             }
             catch (Exception e)
             {
-                return new
+
+                return new OutputResult<string>
                 {
-                    Success = false,
-                    Output = e.Message
+                    HasErrors = true,
+                    Message = e.Message
                 };
             }
         }
 
-        [FunctionName(nameof(ThirdRunbookProcess))]
-        public static async Task<string> ThirdRunbookProcess([ActivityTrigger] string runbook, ILogger log)
+        [FunctionName(nameof(ConcurRunbookToProcess))]
+        public static async Task<OutputResult<string>> ConcurRunbookToProcess([ActivityTrigger] RunbookRequest runbook, ILogger log)
         {
-            log.LogInformation($"Running third runbook process {runbook}.");
-            if (runbook.Contains("Retry"))
+            log.LogInformation($"Running Concur runbook process {runbook.JobId} = {runbook.JobName}.");
+            if (runbook.ItShouldRetry)
             {
-                throw new InvalidOperationException("Failed to running third runbook process.");
+                throw new InvalidOperationException($"Failed to running Concur process. Job: {runbook.JobName}");
             }
             // simulate doing the activity
             await Task.Delay(5000);
-            return $"The runbook was processed {runbook} to third external system.";
+            return new OutputResult<string>
+            {
+                HasErrors = false,
+                Message = $"The runbook Job {runbook.JobName} was completed and processed to Intact system.",
+                Data = "Concur additional interesting data."
+            };
         }
     }
 }

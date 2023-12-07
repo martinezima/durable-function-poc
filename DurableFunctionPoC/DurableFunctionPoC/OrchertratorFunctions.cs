@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using DurableFunctionPoC.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
@@ -16,17 +17,17 @@ namespace DurableFunctionPoC
             //at this point in the orchestractor function.
             log = context.CreateReplaySafeLogger(log);
             
-            var runbook = context.GetInput<string>();
+            var runbook = context.GetInput<RunbookRequest>();
 
             log.LogInformation("about to call first activity");
-            var firstRunbookProcessResult = await context.CallActivityAsync<string>("FirstRunbookToProcess", runbook);
+            var intactRunbookProcessResult = await context.CallActivityAsync<OutputResult<string>>("IntactRunbookToProcess", runbook);
             
             log.LogInformation("about to call second activity");
-            var secondRunbookProcessResult = await context.CallActivityAsync<object>("SecondRunbookToProcess", runbook);
+            var salesforceRunbookProcessResult = await context.CallActivityAsync<OutputResult<string>>("SalesforceRunbookToProcess", runbook);
 
             log.LogInformation("about to call third activity");
-            var thirdRunbookProcessResult = await context.CallActivityWithRetryAsync<string>("ThirdRunbookProcess",
-                new RetryOptions(TimeSpan.FromSeconds(5), 5)
+            var concurRunbookProcessResult = await context.CallActivityWithRetryAsync<OutputResult<string>>("ConcurRunbookToProcess",
+                new RetryOptions(TimeSpan.FromSeconds(5), runbook.TimesToRetry)
                 {
                     Handle = ex =>
                     {
@@ -36,9 +37,9 @@ namespace DurableFunctionPoC
 
             return new
             {
-                FirstRunbookProcessResult = firstRunbookProcessResult,
-                SecondRunbookProcessResult = secondRunbookProcessResult,
-                ThirdRunbookProcessResult = thirdRunbookProcessResult
+                Intact = intactRunbookProcessResult,
+                Salesforce = salesforceRunbookProcessResult,
+                Concur = concurRunbookProcessResult
             };
 
         }
