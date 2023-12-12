@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace DurableFunctionPoC.Models
 {
-    public  class OutputResult<T>
+    public  class InputResult
     {
-
-        public bool HasErrors { get; set; }
+        public RunbookRequest Runbook { get; set; }
+        public string SomeConfigHere { get; set; }
+        public string OrchestrationId { get; set; }
         public string Message { get; set; }
-        public T Data { get; set; }
-        public ExternalSystem ProccesedIn{ get; set; }
+
     }
 }
