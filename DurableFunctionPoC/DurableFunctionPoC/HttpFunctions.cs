@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DurableFunctionPoC.Models;
@@ -18,7 +19,7 @@ namespace DurableFunctionPoC
         public static async Task<IActionResult> ProccessRunbookStarter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")]
             HttpRequest req,
-            [DurableClient] IDurableOrchestrationClient starter,
+            [DurableClient] IDurableClient starter,
             ILogger log)
         {
             var body = await new StreamReader(req.Body).ReadToEndAsync();
@@ -34,52 +35,53 @@ namespace DurableFunctionPoC
 
             log.LogInformation("Started orchestration with ID = '{instanceId}'.", instanceId);
 
-            return starter.CreateCheckStatusResponse(req, instanceId);
+            TimeSpan timeout = TimeSpan.FromSeconds(5);
+            return await starter.WaitForCompletionOrCreateCheckStatusResponseAsync(req, instanceId, timeout);
         }
 
 
-        [FunctionName(nameof(SubmitApprovalForExternal))]
-        public static async Task<IActionResult> SubmitApprovalForExternal(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "SubmitRunbookApproval/{id}")]
-            HttpRequest req,
-            [DurableClient] IDurableOrchestrationClient client,
-            [Table("RunbookApprovals", "RunbookApproval", "{id}", Connection ="AzureWebJobsStorage")] RunbookApproval approval,
-            ILogger log)
-        {
-            //if the approval code doesn't exist, framewor just return a 404 before we get here
-            var body = await new StreamReader(req.Body).ReadToEndAsync();
-            var approvalOutput = JsonConvert.DeserializeObject<ApprovalOutput>(body);
+        //[FunctionName(nameof(SubmitApprovalForExternal))]
+        //public static async Task<IActionResult> SubmitApprovalForExternal(
+        //    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "SubmitRunbookApproval/{id}")]
+        //    HttpRequest req,
+        //    [DurableClient] IDurableOrchestrationClient client,
+        //    [Table("RunbookApprovals", "RunbookApproval", "{id}", Connection ="AzureWebJobsStorage")] RunbookApproval approval,
+        //    ILogger log)
+        //{
+        //    //if the approval code doesn't exist, framewor just return a 404 before we get here
+        //    var body = await new StreamReader(req.Body).ReadToEndAsync();
+        //    var approvalOutput = JsonConvert.DeserializeObject<ApprovalOutput>(body);
 
-            if (approvalOutput == null)
-            {
-                return new BadRequestObjectResult("Need an approval outout result.");
-            }
+        //    if (approvalOutput == null)
+        //    {
+        //        return new BadRequestObjectResult("Need an approval outout result.");
+        //    }
 
-            await client.RaiseEventAsync(approval.OrchestrationId, "ApprovalResult", approvalOutput);
+        //    await client.RaiseEventAsync(approval.OrchestrationId, "ApprovalResult", approvalOutput);
 
-            return new OkObjectResult("Event for approval have been requested.");
-        }
+        //    return new OkObjectResult("Event for approval have been requested.");
+        //}
 
 
-        [FunctionName(nameof(CancelRunbookForExternal))]
-        public static async Task<IActionResult> CancelRunbookForExternal(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "CancelRunbook/{id}")]
-            HttpRequest req,
-            [DurableClient] IDurableOrchestrationClient client,
-            [Table("MonitoringRunbooks", "MonitoringRunbook", "{id}", Connection = "AzureWebJobsStorage")] MonitoringRunbook monitoring,
-            ILogger log)
-        {
-            //if the approval code doesn't exist, framewor just return a 404 before we get here
+        //[FunctionName(nameof(CancelRunbookForExternal))]
+        //public static async Task<IActionResult> CancelRunbookForExternal(
+        //    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "CancelRunbook/{id}")]
+        //    HttpRequest req,
+        //    [DurableClient] IDurableOrchestrationClient client,
+        //    [Table("MonitoringRunbooks", "MonitoringRunbook", "{id}", Connection = "AzureWebJobsStorage")] MonitoringRunbook monitoring,
+        //    ILogger log)
+        //{
+        //    //if the approval code doesn't exist, framewor just return a 404 before we get here
 
-            if (monitoring == null)
-            {
-                return new BadRequestObjectResult("Need an existing running Runbook.");
-            }
+        //    if (monitoring == null)
+        //    {
+        //        return new BadRequestObjectResult("Need an existing running Runbook.");
+        //    }
 
-            await client.TerminateAsync(monitoring.OrchestrationId, "Aborted");
+        //    await client.TerminateAsync(monitoring.OrchestrationId, "Aborted");
 
-            return new OkObjectResult("Event for cancellation have been requested.");
-        }
+        //    return new OkObjectResult("Event for cancellation have been requested.");
+        //}
 
 
     }

@@ -105,63 +105,63 @@ namespace DurableFunctionPoC
                 }).ToDictionary(x => x.Key, x => x.Value);
         }
 
-        #region For monitoring
+        //#region For monitoring
 
-        [FunctionName(nameof(MonitoringDf))]
-        public static void MonitoringDf([ActivityTrigger] RunbookStep runbookStep,
-        [Table("MonitoringRunbooks", "AzureWebJobsStorage")] out MonitoringRunbook monitoring, ILogger log)
-        {
-            var monitoringId = Guid.NewGuid().ToString("N");
-            monitoring = new MonitoringRunbook
-            {
-                PartitionKey = "MonitoringRunbook",
-                RowKey = monitoringId,
-                OrchestrationId = runbookStep.OrchestrationId,
-                Activity = runbookStep.Message
-            };
+        //[FunctionName(nameof(MonitoringDf))]
+        //public static void MonitoringDf([ActivityTrigger] RunbookStep runbookStep,
+        //[Table("MonitoringRunbooks", "AzureWebJobsStorage")] out MonitoringRunbook monitoring, ILogger log)
+        //{
+        //    var monitoringId = Guid.NewGuid().ToString("N");
+        //    monitoring = new MonitoringRunbook
+        //    {
+        //        PartitionKey = "MonitoringRunbook",
+        //        RowKey = monitoringId,
+        //        OrchestrationId = runbookStep.OrchestrationId,
+        //        Activity = runbookStep.Message
+        //    };
 
-        }
-        #endregion
-
-
-        #region For External Events activities.
-
-        [FunctionName(nameof(SendApprovalToContinue))]
-        public static void SendApprovalToContinue([ActivityTrigger] ApprovalInfo approvalInfo,
-        [Table("RunbookApprovals", "AzureWebJobsStorage")] out RunbookApproval runbookApproval, ILogger log)
-        {
-            log.LogInformation($"Requesting approval for \"{approvalInfo.RunbookId}\".");
-            var runbookApprovalId = Guid.NewGuid().ToString("N");
-            runbookApproval = new RunbookApproval
-            {
-                PartitionKey = "RunbookApproval",
-                RowKey = runbookApprovalId,
-                OrchestrationId = approvalInfo.OrchestrationId,
-                RunbookId = approvalInfo.RunbookId
-            };
-
-            // can sending an email using SendGridMessage,
-            // sending notification using SignalRService ?
-            // so on
-        }
-
-        [FunctionName(nameof(SendRunbookResultsProcess))]
-        public static async Task SendRunbookResultsProcess([ActivityTrigger] ApprovalOutput approvalOutput, ILogger log)
-        {
-            log.LogInformation($"Completing {approvalOutput.SomeMoreRelevantInfo}.");
-            // simulate completing runbook process
-            await Task.Delay(1000);
-        }
-
-        [FunctionName(nameof(AbortAndCleanUpProcess))]
-        public static async Task AbortAndCleanUpProcess([ActivityTrigger] RunbookRequest runbook, ILogger log)
-        {
-            log.LogInformation($"Abort and Cleanup process for {runbook.JobId} \"{runbook.JobName}\".");
-            // simulate aborting and cleanup runbook process
-            await Task.Delay(1000);
-        }
+        //}
+        //#endregion
 
 
-        #endregion
+        //#region For External Events activities.
+
+        //[FunctionName(nameof(SendApprovalToContinue))]
+        //public static void SendApprovalToContinue([ActivityTrigger] ApprovalInfo approvalInfo,
+        //[Table("RunbookApprovals", "AzureWebJobsStorage")] out RunbookApproval runbookApproval, ILogger log)
+        //{
+        //    log.LogInformation($"Requesting approval for \"{approvalInfo.RunbookId}\".");
+        //    var runbookApprovalId = Guid.NewGuid().ToString("N");
+        //    runbookApproval = new RunbookApproval
+        //    {
+        //        PartitionKey = "RunbookApproval",
+        //        RowKey = runbookApprovalId,
+        //        OrchestrationId = approvalInfo.OrchestrationId,
+        //        RunbookId = approvalInfo.RunbookId
+        //    };
+
+        //    // can sending an email using SendGridMessage,
+        //    // sending notification using SignalRService ?
+        //    // so on
+        //}
+
+        //[FunctionName(nameof(SendRunbookResultsProcess))]
+        //public static async Task SendRunbookResultsProcess([ActivityTrigger] ApprovalOutput approvalOutput, ILogger log)
+        //{
+        //    log.LogInformation($"Completing {approvalOutput.SomeMoreRelevantInfo}.");
+        //    // simulate completing runbook process
+        //    await Task.Delay(1000);
+        //}
+
+        //[FunctionName(nameof(AbortAndCleanUpProcess))]
+        //public static async Task AbortAndCleanUpProcess([ActivityTrigger] RunbookRequest runbook, ILogger log)
+        //{
+        //    log.LogInformation($"Abort and Cleanup process for {runbook.JobId} \"{runbook.JobName}\".");
+        //    // simulate aborting and cleanup runbook process
+        //    await Task.Delay(1000);
+        //}
+
+
+        //#endregion
     }
 }

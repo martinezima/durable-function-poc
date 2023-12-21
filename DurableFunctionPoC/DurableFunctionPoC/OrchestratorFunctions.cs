@@ -24,11 +24,11 @@ namespace DurableFunctionPoC
             var runbook = context.GetInput<RunbookRequest>();
             //BTW there  is also a CallSubOrchestratorAsyncWithRetries
             // We can use if we want to retries with backoff
-            await context.CallActivityAsync("MonitoringDf", new RunbookStep
-            {
-                OrchestrationId = context.InstanceId,
-                Message = "About to run Fan in / Fan out."
-            });
+            //await context.CallActivityAsync("MonitoringDf", new RunbookStep
+            //{
+            //    OrchestrationId = context.InstanceId,
+            //    Message = "About to run Fan in / Fan out."
+            //});
             var runbooksResults = await context.
                 CallSubOrchestratorAsync<OutputResult<string>[]>(nameof(ExcecuteRunbookOrchestrator), runbook);
 
@@ -37,44 +37,44 @@ namespace DurableFunctionPoC
             var salesforceRunbookProcessResult = runbooksResults.Where(x => x.ProccesedIn == ExternalSystem.Salesforce).SingleOrDefault();
             var concurRunbookProcessResult = runbooksResults.Where(x => x.ProccesedIn == ExternalSystem.Concur).SingleOrDefault();
 
-            await context.CallActivityAsync("MonitoringDf", new RunbookStep
-            {
-                OrchestrationId = context.InstanceId, 
-                Message = "Fan in / Fan out completed."
-            });
+            //await context.CallActivityAsync("MonitoringDf", new RunbookStep
+            //{
+            //    OrchestrationId = context.InstanceId, 
+            //    Message = "Fan in / Fan out completed."
+            //});
 
-            await context.CallActivityAsync("SendApprovalToContinue", new ApprovalInfo()
-            {
-                OrchestrationId = context.InstanceId,
-                RunbookId = runbook.JobId
-            });
+            //await context.CallActivityAsync("SendApprovalToContinue", new ApprovalInfo()
+            //{
+            //    OrchestrationId = context.InstanceId,
+            //    RunbookId = runbook.JobId
+            //});
 
-            var approvalResult = await context.WaitForExternalEvent<ApprovalOutput>("ApprovalResult");
+            //var approvalResult = await context.WaitForExternalEvent<ApprovalOutput>("ApprovalResult");
 
-            //This peace of code would be another great use case for Subsorchestration.
-            if (approvalResult.IsApproved)
-            {
-                approvalResult.SomeMoreRelevantInfo = runbook.JobName;
-                await context.CallActivityAsync("SendRunbookResultsProcess", approvalResult);
-            }
-            else
-            {
-                await context.CallActivityAsync("AbortAndCleanUpProcess", approvalResult);
-                await context.WaitForExternalEvent<string>("JustCancelTheWorkflow");
-            }
+            ////This peace of code would be another great use case for Subsorchestration.
+            //if (approvalResult.IsApproved)
+            //{
+            //    approvalResult.SomeMoreRelevantInfo = runbook.JobName;
+            //    await context.CallActivityAsync("SendRunbookResultsProcess", approvalResult);
+            //}
+            //else
+            //{
+            //    await context.CallActivityAsync("AbortAndCleanUpProcess", approvalResult);
+            //    await context.WaitForExternalEvent<string>("JustCancelTheWorkflow");
+            //}
 
-            await context.CallActivityAsync("MonitoringDf", new RunbookStep
-            {
-                OrchestrationId = context.InstanceId,
-                Message = $"Runbook for Job \"{runbook.JobName}\" process is completed, Approval Status; {approvalResult?.ApprovalStatus ?? "Unknown"}."
-            });
+            //await context.CallActivityAsync("MonitoringDf", new RunbookStep
+            //{
+            //    OrchestrationId = context.InstanceId,
+            //    Message = $"Runbook for Job \"{runbook.JobName}\" process is completed, Approval Status; {approvalResult?.ApprovalStatus ?? "Unknown"}."
+            //});
 
             return new
             {
                 Intact = intactRunbookProcessResult,
                 Salesforce = salesforceRunbookProcessResult,
                 Concur = concurRunbookProcessResult,
-                ApprovalStatus = approvalResult?.ApprovalStatus ?? "Unknown"
+                //ApprovalStatus = approvalResult?.ApprovalStatus ?? "Unknown"
             };
 
         }
@@ -109,21 +109,21 @@ namespace DurableFunctionPoC
                     SomeConfigHere = configsForRunbooks.GetValueOrDefault(ExternalSystem.Concur)
                 }));
 
-            await context.CallActivityAsync("MonitoringDf", new RunbookStep 
-            {
-                OrchestrationId = context.InstanceId,
-                Message = "About to run Fan in / Fan out, called by SubOrchestrator."
-            });
+            //await context.CallActivityAsync("MonitoringDf", new RunbookStep 
+            //{
+            //    OrchestrationId = context.InstanceId,
+            //    Message = "About to run Fan in / Fan out, called by SubOrchestrator."
+            //});
 
             var runbooksResults = await Task.WhenAll(runbookToProcessTasks);
 
 
 
-            await context.CallActivityAsync("MonitoringDf", new RunbookStep
-            {
-                OrchestrationId = context.InstanceId,
-                Message = "About to run Fan in / Fan out completed, called by SubOrchestrator."
-            });
+            //await context.CallActivityAsync("MonitoringDf", new RunbookStep
+            //{
+            //    OrchestrationId = context.InstanceId,
+            //    Message = "About to run Fan in / Fan out completed, called by SubOrchestrator."
+            //});
 
             return runbooksResults;
 
