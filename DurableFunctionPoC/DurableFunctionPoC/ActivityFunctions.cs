@@ -1,6 +1,8 @@
+using DurableFunctionPoC.Interfaces;
 using DurableFunctionPoC.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,85 +13,55 @@ using System.Threading.Tasks;
 namespace DurableFunctionPoC
 {
 
-    public static class ActivityFunctions
+    public class ActivityFunctions
     {
+        private readonly ILogger _log;
+        private readonly IConcurRunbookProcessor _concurRunbookProcessor;
+        private readonly IIntactRunbookProcessor _intactRunbookProcessor;
+        private readonly ISalesforceRunbookProcessor _salesforceRunbookProcessor;
+        private readonly ISomeRunbookProcessor _someRunbookProcessor;
+        private List<RunbookMonitoring> _monitoring  = new();
+
+        public ActivityFunctions(ILogger<ActivityFunctions> log, 
+            IConcurRunbookProcessor concurRunbookProcessor,
+            IIntactRunbookProcessor intactRunbookProcessor,
+            ISalesforceRunbookProcessor salesforceRunbookProcessor,
+            ISomeRunbookProcessor someRunbookProcessor)
+        {
+            _log = log;
+            _concurRunbookProcessor = concurRunbookProcessor;
+            _intactRunbookProcessor = intactRunbookProcessor;
+            _salesforceRunbookProcessor = salesforceRunbookProcessor;
+            _someRunbookProcessor = someRunbookProcessor;
+        }
 
         [FunctionName(nameof(IntactRunbookToProcess))]
-        public static async Task<OutputResult<string>> IntactRunbookToProcess([ActivityTrigger]        
-        InputResult inputResult, ILogger log)
+        public async Task<OutputResult<string>> IntactRunbookToProcess([ActivityTrigger]        
+        InputResult inputResult)
         {
-            log.LogInformation($"Getting configuration to use for Intact system = {inputResult.SomeConfigHere}.");
-            log.LogInformation($"Running Intact runbook process {inputResult.Runbook.JobId} = \"{inputResult.Runbook.JobName}\".");
-            log.LogInformation($"Starting to do it some job {inputResult.Runbook.DoSomeJob}. for Intact.");
-            // simulate doing the activity
-            await Task.Delay(5000);
-            return new OutputResult<string>
-            {
-                HasErrors = false,
-                Message = $"The runbook Job \"{inputResult.Runbook.JobName}\" was completed and processed to Intact system.",
-                ProccesedIn = ExternalSystem.Intact,
-                Data = "Intact additional interesting data."
-            };
+            return await _intactRunbookProcessor.Process(inputResult);
         }
 
         [FunctionName(nameof(SalesforceRunbookToProcess))]
-        public static async Task<OutputResult<string>> SalesforceRunbookToProcess([ActivityTrigger] InputResult inputResult, ILogger log)
+        public async Task<OutputResult<string>> SalesforceRunbookToProcess([ActivityTrigger] InputResult inputResult)
         {
-            try
-            {
-                log.LogInformation($"Getting configuration to use for Salesforce system = {inputResult.SomeConfigHere}.");
-                log.LogInformation($"Running Salesforce runbook process {inputResult.Runbook.JobId} = \"{inputResult.Runbook.JobName}\".");
-                if (inputResult.Runbook.DoSomeJob.Contains("Bad"))
-                {
-                    throw new InvalidOperationException($"Failed to running SalesForce process. Job: \"{inputResult.Runbook.JobName}\"");
-                }
-
-                log.LogInformation($"Starting to do it some job {inputResult.Runbook.DoSomeJob}. for Salesforce.");
-                // simulate doing the activity
-                await Task.Delay(10000);
-                return new OutputResult<string>
-                {
-                    HasErrors = false,
-                    Message = $"The runbook Job \"{inputResult.Runbook.JobName}\" was completed and processed to Salesforce system.",
-                    ProccesedIn = ExternalSystem.Salesforce,
-                    Data = "Salesforce additional interesting data."
-                };
-            }
-            catch (Exception e)
-            {
-
-                return new OutputResult<string>
-                {
-                    HasErrors = true,
-                    Message = e.Message,
-                    ProccesedIn = ExternalSystem.Salesforce,
-                };
-            }
+            return await _salesforceRunbookProcessor.Process(inputResult);
         }
 
         [FunctionName(nameof(ConcurRunbookToProcess))]
-        public static async Task<OutputResult<string>> ConcurRunbookToProcess([ActivityTrigger] InputResult inputResult, ILogger log)
+        public async Task<OutputResult<string>> ConcurRunbookToProcess([ActivityTrigger] InputResult inputResult)
         {
-            log.LogInformation($"Getting configuration to use for Concur system = {inputResult.SomeConfigHere}.");
-            log.LogInformation($"Running Concur runbook process {inputResult.Runbook.JobId} = \"{inputResult.Runbook.JobName}\".");
-            if (inputResult.Runbook.ItShouldRetry)
-            {
-                throw new InvalidOperationException($"Failed to running Concur process. Job: \"{inputResult.Runbook.JobName}\"");
-            }
-            // simulate doing the activity
-            log.LogInformation($"Starting to do it some job {inputResult.Runbook.DoSomeJob}. for Concur.");
-            await Task.Delay(5000);
-            return new OutputResult<string>
-            {
-                HasErrors = false,
-                Message = $"The runbook Job \"{inputResult.Runbook.JobName}\" was completed and processed to Intact system.",
-                ProccesedIn = ExternalSystem.Concur,
-                Data = "Concur additional interesting data."
-            };
+            return await _concurRunbookProcessor.Process(inputResult);
+        }
+
+        [FunctionName(nameof(RunSomeProcess))]
+        public void RunSomeProcess([ActivityTrigger] InputResult inputResult)
+        {
+            _someRunbookProcessor.Process(inputResult);
         }
 
         [FunctionName(nameof(GetConfigValues))]
-        public static Dictionary<ExternalSystem, string> GetConfigValues([ActivityTrigger] object input)
+        public Dictionary<ExternalSystem, string> GetConfigValues([ActivityTrigger] object input)
         {
             return Environment.GetEnvironmentVariable("ConfigForExternalSystems")
                 .Split(';')
@@ -105,23 +77,17 @@ namespace DurableFunctionPoC
                 }).ToDictionary(x => x.Key, x => x.Value);
         }
 
-        //#region For monitoring
+        #region For monitoring
 
-        //[FunctionName(nameof(MonitoringDf))]
-        //public static void MonitoringDf([ActivityTrigger] RunbookStep runbookStep,
-        //[Table("MonitoringRunbooks", "AzureWebJobsStorage")] out MonitoringRunbook monitoring, ILogger log)
-        //{
-        //    var monitoringId = Guid.NewGuid().ToString("N");
-        //    monitoring = new MonitoringRunbook
-        //    {
-        //        PartitionKey = "MonitoringRunbook",
-        //        RowKey = monitoringId,
-        //        OrchestrationId = runbookStep.OrchestrationId,
-        //        Activity = runbookStep.Message
-        //    };
+        [FunctionName(nameof(GetStatus))]
+        public RunbookProcessorStatus GetStatus([ActivityTrigger] string orchestrationId)
+        {
+            var currentStatus = _someRunbookProcessor.GetStatus();
+            _log.LogInformation($@"This is the status for Orchestration = {orchestrationId}: {currentStatus}");
+            return currentStatus;
+        }
 
-        //}
-        //#endregion
+        #endregion
 
 
         //#region For External Events activities.

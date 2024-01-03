@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace DurableFunctionPoC.Models
 {
-    public  class RunbookStep
+    public  class RunbookMonitoring
     {
-        public string OrchestrationId { get; set; }
-        public string Message { get; set; }
-
+        public string Event { get; set; }
+        public string Detail { get; set; }
     }
 }

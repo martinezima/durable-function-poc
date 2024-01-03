@@ -13,10 +13,10 @@ using Newtonsoft.Json;
 
 namespace DurableFunctionPoC
 {
-    public static class HttpFunctions
+    public class HttpFunctions
     {
         [FunctionName(nameof(ProccessRunbookStarter))]
-        public static async Task<IActionResult> ProccessRunbookStarter(
+        public async Task<IActionResult> ProccessRunbookStarter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")]
             HttpRequest req,
             [DurableClient] IDurableClient starter,
@@ -35,7 +35,7 @@ namespace DurableFunctionPoC
 
             log.LogInformation("Started orchestration with ID = '{instanceId}'.", instanceId);
 
-            TimeSpan timeout = TimeSpan.FromSeconds(5);
+            TimeSpan timeout = TimeSpan.FromSeconds(1);
             return await starter.WaitForCompletionOrCreateCheckStatusResponseAsync(req, instanceId, timeout);
         }
 
