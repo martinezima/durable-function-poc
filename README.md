@@ -1,22 +1,27 @@
 # durable-function-poc
-Durable functions Poc to test Patterns.
+Durable functions Poc to test and monitoring:
+* Fan In / Fan Out pattern
+* Monitoring pattern
 
+**Using Netherite Storage.**
 
-Started Durable Functions --->
+_____________________________________________________
+Orchestrator Started
 
      Subsorchestration ---> 
                        
                        -------> Intact Runbook Service Processor
-                       <------- Return result and track activities
+                       <------- Return result and track status activities
        Fan In /        --------> Concur Runbook Service Processor
-       Fan Out         <------- Return result and track activities
+       Fan Out         <------- Return result and track status activities
        Pattern         --------> Salesforce Runbook Service Processor
-                       <------- Return result and track activities
+                       <------- Return result and track status activities
 
      Call Activity  ---> 
 
        Monitor      -----> Some Runbok Service Processor
         Pattern         -----> Chekcing Status
-                        <----- Returing periodically status til is done.
+                        <----- Return Status every interval of time til is done.
 
----> Durable Functions Completed     
+Orchestrator Completed
+_____________________________________________________
