@@ -13,5 +13,7 @@ namespace DurableFunctionPoC.Models
         public string Message { get; set; }
         public T Data { get; set; }
         public ExternalSystem ProccesedIn{ get; set; }
+        public string RunbookStatus { get; set; }
+        public List<RunbookMonitoring> RunbookMonitoring { get; set; }
     }
 }

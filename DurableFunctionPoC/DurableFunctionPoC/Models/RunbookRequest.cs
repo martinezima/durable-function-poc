@@ -11,7 +11,7 @@ namespace DurableFunctionPoC.Models
         public string DoSomeJob { get; set; } = string.Empty;
         public string JobId { get; set; } = string.Empty;
         public string JobName { get; set; } = string.Empty;
-        public bool ItShouldRetry { get; set; }
+        public bool ThrowException { get; set; }
         public int TimesToRetry { get; set; }
     }
 }
