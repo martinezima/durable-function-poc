@@ -2,7 +2,8 @@
 Durable functions Poc to test and monitoring:
 * Fan In / Fan Out pattern
 * Monitoring pattern
-
+* Cancellation (in progress)
+  
 **Using Netherite Storage.**
 
 _____________________________________________________
@@ -20,7 +21,7 @@ Orchestrator Started
      Call Activity  ---> 
 
        Monitor      -----> Some Runbok Service Processor
-        Pattern         -----> Chekcing Status
+        Pattern         -----> Checking Status
                         <----- Return Status every interval of time til is done.
 
 Orchestrator Completed
