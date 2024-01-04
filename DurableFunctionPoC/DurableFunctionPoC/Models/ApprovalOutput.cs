@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace DurableFunctionPoC.Models
 {
-    public  class ApprovalOutput
+    public  class DurableFunctionClientRequest
     {
-        public bool IsApproved { get; set; }
-        public string SomeMoreRelevantInfo { get; set; }
-        public string ApprovalStatus { get; set; }
+        public string InstanceId { get; set; }
 
     }
 }

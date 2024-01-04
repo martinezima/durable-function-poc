@@ -46,6 +46,7 @@ namespace DurableFunctionPoC
             var concurRunbookProcessResult = runbooksResults.Where(x => x.ProccesedIn == ExternalSystem.Concur).SingleOrDefault();
 
             SetCustomStatus(context, intactRunbookProcessResult, salesforceRunbookProcessResult, concurRunbookProcessResult);
+            await context.CallActivityAsync<bool>("AddingDelay",null);
 
             await context.CallActivityAsync("RunSomeProcess",
                 new InputResult
@@ -65,7 +66,8 @@ namespace DurableFunctionPoC
                     break;
                 }
 
-                SetCustomStatus(context, runbookStatus.ToString());
+                SetCustomStatus(context, intactRunbookProcessResult, salesforceRunbookProcessResult,
+                    concurRunbookProcessResult, Status.ToString());
 
                 var nextCheck = context.CurrentUtcDateTime.AddSeconds(pollingInterval);
                 await context.CreateTimer(nextCheck, CancellationToken.None);
@@ -135,7 +137,7 @@ namespace DurableFunctionPoC
 
         private DateTime GetExpiryTime(IDurableOrchestrationContext context)
         {
-            return context.CurrentUtcDateTime.AddMinutes(.5);
+            return context.CurrentUtcDateTime.AddSeconds(90);
         }
 
         private int GetPollingInterval()

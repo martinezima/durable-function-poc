@@ -40,27 +40,26 @@ namespace DurableFunctionPoC
         }
 
 
-        //[FunctionName(nameof(SubmitApprovalForExternal))]
-        //public static async Task<IActionResult> SubmitApprovalForExternal(
-        //    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "SubmitRunbookApproval/{id}")]
-        //    HttpRequest req,
-        //    [DurableClient] IDurableOrchestrationClient client,
-        //    [Table("RunbookApprovals", "RunbookApproval", "{id}", Connection ="AzureWebJobsStorage")] RunbookApproval approval,
-        //    ILogger log)
-        //{
-        //    //if the approval code doesn't exist, framewor just return a 404 before we get here
-        //    var body = await new StreamReader(req.Body).ReadToEndAsync();
-        //    var approvalOutput = JsonConvert.DeserializeObject<ApprovalOutput>(body);
+        [FunctionName(nameof(CheckDurableFuctionStatusbyInstanceId))]
+        public static async Task<IActionResult> CheckDurableFuctionStatusbyInstanceId(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "CheckDurableFuctionStatusbyInstanceId")]
+            HttpRequest req,
+            [DurableClient] IDurableOrchestrationClient client,
+            ILogger log)
+        {
 
-        //    if (approvalOutput == null)
-        //    {
-        //        return new BadRequestObjectResult("Need an approval outout result.");
-        //    }
+            var body = await new StreamReader(req.Body).ReadToEndAsync();
+            var durableFunctionClientRequest = JsonConvert.DeserializeObject<DurableFunctionClientRequest>(body);
 
-        //    await client.RaiseEventAsync(approval.OrchestrationId, "ApprovalResult", approvalOutput);
+            if (durableFunctionClientRequest == null)
+            {
+                return new BadRequestObjectResult("Need an Instance Id.");
+            }
 
-        //    return new OkObjectResult("Event for approval have been requested.");
-        //}
+            var status = await client.GetStatusAsync(durableFunctionClientRequest.InstanceId, showHistoryOutput: true);
+
+            return new OkObjectResult(status);
+        }
 
 
         //[FunctionName(nameof(CancelRunbookForExternal))]
