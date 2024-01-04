@@ -87,6 +87,14 @@ namespace DurableFunctionPoC
             return currentStatus;
         }
 
+
+        [FunctionName(nameof(AddingDelay))]
+        public async Task<bool> AddingDelay([ActivityTrigger] string orchestrationId)
+        {
+            await Task.Delay(5000);
+            return true;
+        }
+
         #endregion
 
 
