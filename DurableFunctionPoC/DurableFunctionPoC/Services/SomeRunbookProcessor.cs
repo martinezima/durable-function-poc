@@ -34,6 +34,8 @@ namespace DurableFunctionPoC.Services
                 switch (oldvalue)
                 {
                     case RunbookProcessorStatus.NoStarted:
+                        return RunbookProcessorStatus.Started;
+                    case RunbookProcessorStatus.Started:
                         return RunbookProcessorStatus.Processing;
                     case RunbookProcessorStatus.Processing:
                         return RunbookProcessorStatus.Processed;

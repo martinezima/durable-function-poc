@@ -359,16 +359,21 @@
     <button class="card card-small" (click)="startDurableFunction()" tabindex="0">
       <span>Start Runbook Process</span>
     </button>
-    <button class="card card-small" (click)="selection.value = 'component'" tabindex="0">
+    <button class="card card-small" (click)="cancelDurableFunction()" tabindex="0">
       <span>Cancel Runbook Process</span>
     </button>   
   </div>
 
   <!-- Terminal -->
   <div class="terminal" *ngIf="durableFuctionService.monitoringRunbookInstance$ | async as monitorings">
-    <pre *ngIf="durableFuctionService.monitoringComplete" style="transition: visibility 0s, opacity 0.5s linear;">
-      The Runbook process for instance "{{instanceId}}" has been completed.
-    </pre>    
+    <pre *ngIf="durableFuctionService.monitoringComplete && !durableFuctionService.monitoringCancell"
+     style="transition: visibility 0s, opacity 0.5s linear;">
+      The Runbook process for instance "{{instanceId}}" has been COMPLETED.
+    </pre>
+    <pre *ngIf="durableFuctionService.monitoringComplete && durableFuctionService.monitoringCancell"
+     style="transition: visibility 0s, opacity 0.5s linear;">
+      The Runbook process for instance "{{instanceId}}" has been CANCELED.
+    </pre>
     <pre *ngFor="let monitor of monitorings">
       <span>{{monitor.Activity}}</span>
       <span style="transition: visibility 0.3s, opacity 0.5s linear;">{{monitor.Status}}</span>
@@ -377,7 +382,6 @@
         <span>{{detail.Event}}</span>
       </span>
     </pre>
-
 </div>
   <!-- Footer -->
   <footer>

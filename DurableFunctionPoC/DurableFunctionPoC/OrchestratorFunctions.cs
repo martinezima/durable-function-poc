@@ -29,6 +29,13 @@ namespace DurableFunctionPoC
         public async Task<object> ProcessRunbookOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger log)
         {
+            Status = RunbookProcessorStatus.Started;
+            context.SetCustomStatus(new
+            {
+                Activity = "Any activity started.",
+                Status = Status.ToString(),
+                Details = new List<MonitoringRunbook>()
+            });
             Status = RunbookProcessorStatus.Processing;
             //Technique to only write them if we're not replaying
             //at this point in the orchestractor function.
@@ -156,7 +163,7 @@ namespace DurableFunctionPoC
                 {
                     Activity = $@"Runbook Processor at: ""SomeProcessor"".",
                     Status = status,
-                    Details = ""
+                    Details = new List<MonitoringRunbook>()
                 });
             }
 
