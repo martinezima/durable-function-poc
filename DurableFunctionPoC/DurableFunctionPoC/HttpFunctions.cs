@@ -53,7 +53,7 @@ namespace DurableFunctionPoC
 
             if (durableFunctionClientRequest == null)
             {
-                return new BadRequestObjectResult("Need an Instance Id.");
+                return new BadRequestObjectResult(new { Message = "Need an Instance Id." });
             }
 
             var status = await client.GetStatusAsync(durableFunctionClientRequest.InstanceId, showHistoryOutput: true);
@@ -62,25 +62,26 @@ namespace DurableFunctionPoC
         }
 
 
-        //[FunctionName(nameof(CancelRunbookForExternal))]
-        //public static async Task<IActionResult> CancelRunbookForExternal(
-        //    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "CancelRunbook/{id}")]
-        //    HttpRequest req,
-        //    [DurableClient] IDurableOrchestrationClient client,
-        //    [Table("MonitoringRunbooks", "MonitoringRunbook", "{id}", Connection = "AzureWebJobsStorage")] MonitoringRunbook monitoring,
-        //    ILogger log)
-        //{
-        //    //if the approval code doesn't exist, framewor just return a 404 before we get here
+        [FunctionName(nameof(CancelRunbookForExternal))]
+        public static async Task<IActionResult> CancelRunbookForExternal(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "CancelRunbook/")]
+            HttpRequest req,
+            [DurableClient] IDurableOrchestrationClient client,
+            ILogger log)
+        {
 
-        //    if (monitoring == null)
-        //    {
-        //        return new BadRequestObjectResult("Need an existing running Runbook.");
-        //    }
+            var body = await new StreamReader(req.Body).ReadToEndAsync();
+            var durableFunctionClientRequest = JsonConvert.DeserializeObject<DurableFunctionClientRequest>(body);
 
-        //    await client.TerminateAsync(monitoring.OrchestrationId, "Aborted");
+            if (durableFunctionClientRequest == null)
+            {
+                return new BadRequestObjectResult(new { Message = "Need an Instance Id." });
+            }
 
-        //    return new OkObjectResult("Event for cancellation have been requested.");
-        //}
+            await client.TerminateAsync(durableFunctionClientRequest.InstanceId, "Aborted");
+
+            return new OkObjectResult(new { Message = "Event for cancellation have been requested." });
+        }
 
 
     }

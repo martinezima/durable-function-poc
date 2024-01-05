@@ -8,6 +8,6 @@ namespace DurableFunctionPoC.Models
 {
     public enum RunbookProcessorStatus
     {
-        NoStarted, Processing, Processed, Failed
+        NoStarted, Started, Processing, Processed, Failed
     }
 }
