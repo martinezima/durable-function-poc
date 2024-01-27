@@ -26,7 +26,7 @@ namespace DurableFunctionPoC.Services
                 _log.LogInformation($@"Running Intact runbook process {inputResult.Runbook.JobId} = ""{inputResult.Runbook.JobName}"".");
                 var message  = $"Starting to do it some job {inputResult.Runbook.DoSomeJob}. for Intact.";
                 _log.LogInformation(message);
-                monitorings.Add(new RunbookMonitoring { Event = "Process Started", Detail = message });
+                monitorings.Add(new RunbookMonitoring { Event = $"Process Started {inputResult.OrchestrationId}", Detail = message });
                 // simulate doing the activity
                 await Task.Delay(5000);
                 await DoSomeProcessForIntact();

@@ -118,6 +118,7 @@ namespace DurableFunctionPoC
             runbookToProcessTasks.Add(context.CallActivityAsync<OutputResult<string>>("IntactRunbookToProcess",
                 new InputResult
                 {
+                    OrchestrationId = context.InstanceId,
                     Runbook = runbook,
                     SomeConfigHere = configsForRunbooks.GetValueOrDefault(ExternalSystem.Intact)
                 }));
@@ -125,6 +126,7 @@ namespace DurableFunctionPoC
             runbookToProcessTasks.Add(context.CallActivityAsync<OutputResult<string>>("SalesforceRunbookToProcess",
                 new InputResult
                 {
+                    OrchestrationId = context.InstanceId,
                     Runbook = runbook,
                     SomeConfigHere = configsForRunbooks.GetValueOrDefault(ExternalSystem.Salesforce)
                 }));
@@ -132,6 +134,7 @@ namespace DurableFunctionPoC
             runbookToProcessTasks.Add(context.CallActivityAsync<OutputResult<string>>("ConcurRunbookToProcess",
                 new InputResult
                 {
+                    OrchestrationId = context.InstanceId,
                     Runbook = runbook,
                     SomeConfigHere = configsForRunbooks.GetValueOrDefault(ExternalSystem.Concur)
                 }));

@@ -27,7 +27,7 @@ namespace DurableFunctionPoC.Services
 
                 var message = $@"Starting to do it some job ""{inputResult.Runbook.DoSomeJob}"" for for Salesforce.";
                 _log.LogInformation(message);
-                monitorings.Add(new RunbookMonitoring { Event = "Process Started", Detail = message });
+                monitorings.Add(new RunbookMonitoring { Event = $"Process Started {inputResult.OrchestrationId}", Detail = message });
                 // simulate doing the activity
                 await Task.Delay(10000);
                 await DoSomeProcessForSalesforce();

@@ -28,7 +28,7 @@ namespace DurableFunctionPoC.Services
                 // simulate doing the activity
                 var message  = $@"Starting to do it some job ""{inputResult.Runbook.DoSomeJob}"" for Concur.";
                 _log.LogInformation(message);
-                monitorings.Add(new RunbookMonitoring { Event = "Process Started", Detail = message });
+                monitorings.Add(new RunbookMonitoring { Event = $"Process Started {inputResult.OrchestrationId}", Detail = message });
                 await Task.Delay(5000);
 
                 if (inputResult.Runbook.ThrowException)
